@@ -3,28 +3,40 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const path = require("path");
-const config = require("./config/serverconfig");
+const dotenv = require('dotenv');
+const config = require('./config/serverconfig');
+const errorHandler = require('./middleware/errorHandler');
+const cookieParser = require('cookie-parser');
 
+dotenv.config();
 
+// Route files
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const groupRoutes = require('./routes/groupRoutes');
+const expenseRoutes = require('./routes/expenseRoutes');
 
-// Initialize express app
 const app = express();
 
-// Security middleware
-app.use(cors(config.cors));
+// Body parser
+app.use(express.json());
 
-// Request parsing
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// Cookie parser
+app.use(cookieParser());
 
 // Logging middleware
 if (config.nodeEnv === "development") {
     app.use(morgan("dev"));
 }
 
+// Enable CORS
+app.use(cors(config.cors));
 
+// Mount routers
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
